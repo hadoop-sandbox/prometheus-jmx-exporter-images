@@ -1,0 +1,31 @@
+name: Pull request verification builds
+
+on:
+  pull_request:
+   branches:
+     - main
+
+jobs:
+  build_images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java_version: [8, 11]
+    steps:
+      -
+        name: Checkout
+        id: checkout
+        uses: actions/checkout@v3
+      -
+        name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Build prometheus jmx exporter images
+        id: build_images
+        run: make all java_version=${{ matrix.java_version }} docker_org=${{ secrets.DOCKERHUB_USERNAME }} cache=/tmp/.buildx-cache
+
