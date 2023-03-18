@@ -7,8 +7,8 @@ ARG BUILDPLATFORM
 RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 RUN install -d /home/curl_user/dists
 RUN echo "Downloading Prometheus jmx_exporter" && \
-  curl -fsSLo '/home/curl_user/dists/jmx_prometheus_httpserver.jar' 'https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/0.17.2/jmx_prometheus_httpserver-0.17.2.jar' && \
-  echo 'c2ae0425cfe7c7d8ec8c9ab4dff9f6c09ef3558e28469804d018148541126809 */home/curl_user/dists/jmx_prometheus_httpserver.jar' | sha256sum -c -
+  curl -fsSLo '/home/curl_user/dists/jmx_prometheus_httpserver.jar' 'https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/0.18.0/jmx_prometheus_httpserver-0.18.0.jar' && \
+  echo '04d28ba3150fe87cafd0a88dce801c69736023ead99f6fd568c79dd1f27dd02a */home/curl_user/dists/jmx_prometheus_httpserver.jar' | sha256sum -c -
 
 FROM eclipse-temurin:${java_version}-jre AS prometheus-jmx-exporter
 RUN --mount=type=bind,from=download,source=/home/curl_user/dists,target=/home/curl_user/dists \
