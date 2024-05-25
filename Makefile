@@ -4,8 +4,8 @@ docker_org := docker-upload.nerdheim.de/nerdheim
 platforms := linux/amd64,linux/arm64
 cache := cache
 docker := docker
-jmx_exporter_major := 0
-jmx_exporter_minor := 20
+jmx_exporter_major := 1
+jmx_exporter_minor := 0
 jmx_exporter_patch := 0
 
 version_tags := $(jmx_exporter_major) $(jmx_exporter_major).$(jmx_exporter_minor) $(jmx_exporter_major).$(jmx_exporter_minor).$(jmx_exporter_patch)
