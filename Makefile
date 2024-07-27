@@ -6,7 +6,7 @@ cache := cache
 docker := docker
 jmx_exporter_major := 1
 jmx_exporter_minor := 0
-jmx_exporter_patch := 0
+jmx_exporter_patch := 1
 
 version_tags := $(jmx_exporter_major) $(jmx_exporter_major).$(jmx_exporter_minor) $(jmx_exporter_major).$(jmx_exporter_minor).$(jmx_exporter_patch)
 

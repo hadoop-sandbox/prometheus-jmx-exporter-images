@@ -2,7 +2,7 @@
 ARG java_version=8
 
 FROM scratch AS download
-ADD --checksum=sha256:533b5fb1256976a5e361f6263093ebc55763cc9ff0778ee630373e1d2649f92f https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/1.0.0/jmx_prometheus_httpserver-1.0.0.jar /dists/jmx_prometheus_httpserver.jar
+ADD --checksum=sha256:a493eb637f9eb827dc3bee2a8cb0dc6bf2b291ace896d4ebfe98b055e394ab1b https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/1.0.1/jmx_prometheus_httpserver-1.0.1.jar /dists/jmx_prometheus_httpserver.jar
 
 FROM eclipse-temurin:${java_version}-jre AS prometheus-jmx-exporter
 RUN --mount=type=bind,from=download,source=/dists,target=/dists \
