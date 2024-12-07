@@ -6,7 +6,7 @@ if [ "$#" -lt 2 ]; then
   exit 1
 fi
 
-readonly JMX_EXPORTER_JAR="/usr/share/jmx_exporter/jmx_prometheus_httpserver.jar"
+readonly JMX_EXPORTER_JAR="/usr/share/jmx_exporter/jmx_prometheus_standalone.jar"
 readonly JMX_EXPORTER_LISTEN="${@:$#-1:1}"
 readonly JMX_EXPORTER_CONFIG_FILE="${@:$#:1}"
 readonly JMX_EXPORTER_HOSTPORT=$(sed -ne 's/^hostPort: \(.*\)$/\1/p' "${JMX_EXPORTER_CONFIG_FILE}" | tr -d '\n')
