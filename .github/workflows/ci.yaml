@@ -59,10 +59,10 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:java-${{ matrix.java_version }}-${{ matrix.arch }}
             ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1-${{ matrix.arch }}
             ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1-java-${{ matrix.java_version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.1-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.1-java-${{ matrix.java_version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.1.0-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.1.0-java-${{ matrix.java_version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.2-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.2-java-${{ matrix.java_version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.2.0-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.2.0-java-${{ matrix.java_version }}-${{ matrix.arch }}
       -
         name: Publish image digests
         id: publish_digest
@@ -93,9 +93,9 @@ jobs:
               -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:java-11" \
               -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1" \
               -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1-java-11" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.1" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.1-java-11" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.1.0" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.1.0-java-11" \
+              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.2" \
+              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.2-java-11" \
+              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.2.0" \
+              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.2.0-java-11" \
               "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:latest-amd64@${{ needs.build_images.outputs.digest_11_amd64 }}" \
               "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:latest-arm64@${{ needs.build_images.outputs.digest_11_arm64 }}"
