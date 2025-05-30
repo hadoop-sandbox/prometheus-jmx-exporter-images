@@ -6,12 +6,20 @@ if [ "$#" -lt 2 ]; then
   exit 1
 fi
 
-readonly JMX_EXPORTER_JAR="/usr/share/jmx_exporter/jmx_prometheus_standalone.jar"
-readonly JMX_EXPORTER_LISTEN="${@:$#-1:1}"
-readonly JMX_EXPORTER_CONFIG_FILE="${@:$#:1}"
-readonly JMX_EXPORTER_HOSTPORT=$(sed -ne 's/^hostPort: \(.*\)$/\1/p' "${JMX_EXPORTER_CONFIG_FILE}" | tr -d '\n')
+JMX_EXPORTER_JAR="/usr/share/jmx_exporter/jmx_prometheus_standalone.jar"
+readonly JMX_EXPORTER_JAR
+JMX_EXPORTER_LISTEN="${@:$#-1:1}"
+readonly JMX_EXPORTER_LISTEN
+JMX_EXPORTER_CONFIG_FILE="${@:$#:1}"
+readonly JMX_EXPORTER_CONFIG_FILE
+JMX_EXPORTER_HOSTPORT=$(sed -ne 's/^hostPort: \(.*\)$/\1/p' "${JMX_EXPORTER_CONFIG_FILE}" | tr -d '\n')
+readonly JMX_EXPORTER_HOSTPORT
+JMX_EXPORTER_HOST=$(sed -ne 's/^\([^:]*\):.*$/\1/p' <<< "${JMX_EXPORTER_HOSTPORT}" | tr -d '\n')
+readonly JMX_EXPORTER_HOST
+JMX_EXPORTER_PORT=$(sed -ne 's/^[^:]*:\(.*)$/\1/p' <<< "${JMX_EXPORTER_HOSTPORT}" | tr -d '\n')
+readonly JMX_EXPORTER_PORT
 
 # test readyness
-java -cp "${JMX_EXPORTER_JAR}" "${@:1:$#-2}" io.prometheus.jmx.JmxScraper "service:jmx:rmi:///jndi/rmi://${JMX_EXPORTER_HOSTPORT}/jmxrmi" > /dev/null
+echo > "/dev/tcp/${JMX_EXPORTER_HOST}/${JMX_EXPORTER_PORT}"
 
 exec java -jar "${JMX_EXPORTER_JAR}" "${@}"
