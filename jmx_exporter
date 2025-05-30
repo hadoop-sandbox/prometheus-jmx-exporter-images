@@ -16,7 +16,7 @@ JMX_EXPORTER_HOSTPORT=$(sed -ne 's/^hostPort: \(.*\)$/\1/p' "${JMX_EXPORTER_CONF
 readonly JMX_EXPORTER_HOSTPORT
 JMX_EXPORTER_HOST=$(sed -ne 's/^\([^:]*\):.*$/\1/p' <<< "${JMX_EXPORTER_HOSTPORT}" | tr -d '\n')
 readonly JMX_EXPORTER_HOST
-JMX_EXPORTER_PORT=$(sed -ne 's/^[^:]*:\(.*)$/\1/p' <<< "${JMX_EXPORTER_HOSTPORT}" | tr -d '\n')
+JMX_EXPORTER_PORT=$(sed -ne 's/^[^:]*:\(.*\)$/\1/p' <<< "${JMX_EXPORTER_HOSTPORT}" | tr -d '\n')
 readonly JMX_EXPORTER_PORT
 
 # test readyness
