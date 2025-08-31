@@ -106,7 +106,7 @@ jobs:
         run: |
           echo "$DIGESTS"
       -
-        name: Push to local registry
+        name: Push images to local registry
         env:
           DIGESTS: ${{ steps.load-images.outputs.digests }}
           REGISTRY: "127.0.0.1:${{ job.services.registry.ports['5000'] }}"
@@ -116,6 +116,14 @@ jobs:
               docker image tag "$digest" "$REGISTRY/image"
             done
           )
+      -
+        name: Create manifest in local registry
+        env:
+          DIGESTS: ${{ steps.load-images.outputs.digests }}
+          REGISTRY: "127.0.0.1:${{ job.services.registry.ports['5000'] }}"
+        run: |
+          images=$(sed -e "s#^#${REGISTRY}/image@#" <<< "$DIGESTS")
+          docker buildx imagetools create -t "$REGISTRY/manifest" $images
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
