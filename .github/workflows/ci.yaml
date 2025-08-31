@@ -12,21 +12,14 @@ on:
       - main
 
 env:
+  # https://docs.docker.com/build/ci/github-actions/reproducible-builds/
   SOURCE_DATE_EPOCH: 0
+  # https://docs.docker.com/build/ci/github-actions/build-summary/#disable-job-summary
   DOCKER_BUILD_SUMMARY: false
 
 jobs:
   build_images:
     runs-on: ${{ matrix.os }}
-    outputs:
-      digest_11_amd64: ${{ steps.publish_digest.outputs.digest_11_amd64 }}
-      digest_11_arm64: ${{ steps.publish_digest.outputs.digest_11_arm64 }}
-
-    permissions:
-      contents: read
-      packages: write
-      attestations: write
-      id-token: write
 
     strategy:
       matrix:
@@ -42,64 +35,30 @@ jobs:
         name: Checkout
         uses: actions/checkout@v5
       -
-        name: Login to DockerHub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Login to GitHub Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
-        name: Build prometheus-jmx-exporter
-        id: prometheus_jmx_exporter
+        name: Create output dir
+        run:  |
+          install -d out
+      -
+        name: Build container image
         uses: docker/build-push-action@v6
         with:
-          push: ${{ github.event_name != 'pull_request' }}
+          outputs: |
+            type=docker,dest=./out/image-${{ matrix.arch }}-${{ matrix.java_version }}.tar
           target: prometheus-jmx-exporter
           build-args: |
             java_version=${{ matrix.java_version }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:java-${{ matrix.java_version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1-java-${{ matrix.java_version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.3-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.3-java-${{ matrix.java_version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.3.0-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.3.0-java-${{ matrix.java_version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:latest-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:java-${{ matrix.java_version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1-java-${{ matrix.java_version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1.3-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1.3-java-${{ matrix.java_version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1.3.0-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1.3.0-java-${{ matrix.java_version }}-${{ matrix.arch }}
 
-      -
-        name: Publish image digests
-        id: publish_digest
-        run: |
-          arch="${{ matrix.arch }}"
-          java_version="${{ matrix.java_version }}"
-
-          digest="${{ steps.prometheus_jmx_exporter.outputs.digest }}" 
-          echo "digest_${java_version}_${arch}=${digest}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.java_version }}-${{ strategy.job-index }}
+          path: ./out/image-*.tar
 
   build_manifests:
     runs-on: ubuntu-24.04
     needs: [build_images]
-    if: github.event_name != 'pull_request'
 
     permissions:
       contents: read
@@ -107,7 +66,71 @@ jobs:
       attestations: write
       id-token: write
 
+    services:
+      registry:
+        image: registry:3
+        ports:
+          - 5000/tcp
+
     steps:
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: image-*
+          path: out
+          merge-multiple: true
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Load images
+        id: load-images
+        run: |
+          {
+            echo 'digests<<EOF'
+            (
+              for tarball in out/image-*.tar; do
+                docker load -q -i "$tarball"
+              done
+            ) | sed -ne 's#^Loaded image ID: ##p'
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+      -
+        name: Print images
+        run: |
+          docker image ls -a
+      -
+        name: Print digests
+        env:
+          DIGESTS: ${{ steps.load-images.outputs.digests }}
+        run: |
+          echo "$DIGESTS"
+      -
+        name: Push images to local registry
+        id: local-push
+        env:
+          DIGESTS: ${{ steps.load-images.outputs.digests }}
+          REGISTRY: "127.0.0.1:${{ job.services.registry.ports['5000'] }}"
+        run: |
+          {
+            echo 'images<<EOF'
+            echo "$DIGESTS" | (
+              while read digest; do
+                tag=$(uuidgen)
+                docker image tag "$digest" "$REGISTRY/image:$tag"
+                docker image push -q "$REGISTRY/image:$tag"
+              done
+            )
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+      -
+        name: Create manifest in local registry
+        id: create-manifest
+        env:
+          IMAGES: ${{ steps.local-push.outputs.images }}
+          REGISTRY: "127.0.0.1:${{ job.services.registry.ports['5000'] }}"
+        run: |
+          docker buildx imagetools create -t "$REGISTRY/manifest" $IMAGES
+          echo "manifest=$REGISTRY/manifest" >> "$GITHUB_OUTPUT"
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -124,30 +147,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
-        name: Create and push prometheus-jmx-exporter manifest on DockerHub
+        name: Publish
         if: github.event_name != 'pull_request'
+        env:
+          MANIFEST: ${{ steps.create-manifest.outputs.manifest }}
+          GHCR_REPO: "ghcr.io/${{ github.repository_owner }}"
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
-          docker buildx imagetools create -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:latest" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:java-11" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1-java-11" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.3" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.3-java-11" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.3.0" \
-              -t "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:1.3.0-java-11" \
-              "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:latest-amd64@${{ needs.build_images.outputs.digest_11_amd64 }}" \
-              "${{ secrets.DOCKERHUB_USERNAME }}/prometheus-jmx-exporter:latest-arm64@${{ needs.build_images.outputs.digest_11_arm64 }}"
-      -
-        name: Create and push prometheus-jmx-exporter manifest on GitHub Container Registry
-        if: github.event_name != 'pull_request'
-        run: |
-          docker buildx imagetools create -t "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:latest" \
-              -t "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:java-11" \
-              -t "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1" \
-              -t "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1-java-11" \
-              -t "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1.3" \
-              -t "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1.3-java-11" \
-              -t "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1.3.0" \
-              -t "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:1.3.0-java-11" \
-              "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:latest-amd64@${{ needs.build_images.outputs.digest_11_amd64 }}" \
-              "ghcr.io/${{ github.repository_owner }}/prometheus-jmx-exporter:latest-arm64@${{ needs.build_images.outputs.digest_11_arm64 }}"
+          run: |
+            docker buildx imagetools create \
+                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:latest" \
+                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:java-11" \
+                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1" \
+                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1-java-11" \
+                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3" \
+                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3-java-11" \
+                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3.0" \
+                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3.0-java-11" \
+                  -t "${GHCR_REPO}/prometheus-jmx-exporter:latest" \
+                  -t "${GHCR_REPO}/prometheus-jmx-exporter:java-11" \
+                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1" \
+                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1-java-11" \
+                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3" \
+                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3-java-11" \
+                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3.0" \
+                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3.0-java-11" \
+                  "${MANIFEST}"
