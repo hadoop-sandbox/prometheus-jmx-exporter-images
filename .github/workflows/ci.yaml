@@ -100,6 +100,13 @@ jobs:
         run: |
           docker image ls -a
       -
+        name: Print digests
+        env:
+          DIGESTS: ${{ steps.load-images.outputs.digests }}
+        run: |
+          echo "$DIGESTS"
+
+      -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
