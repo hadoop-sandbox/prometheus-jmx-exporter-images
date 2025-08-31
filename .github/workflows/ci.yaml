@@ -114,7 +114,7 @@ jobs:
           echo "$DIGESTS" | (
             while read digest; do
               docker image tag "$digest" "$REGISTRY/image:latest"
-              docker image push "$REGISTRY/image:latest"
+              docker image push -q "$REGISTRY/image:latest"
             done
           )
       -
