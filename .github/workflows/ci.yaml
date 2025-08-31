@@ -109,10 +109,11 @@ jobs:
         name: Push to local registry
         env:
           DIGESTS: ${{ steps.load-images.outputs.digests }}
+          REGISTRY: "127.0.0.1:${{ job.services.registry.ports['5000'] }}"
         run: |
           echo "$DIGESTS" | (
             while read digest; do
-              docker image tag "$digest" localhost:5000/image
+              docker image tag "$digest" "$REGISTRY/image"
             done
           )
       -
