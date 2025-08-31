@@ -105,7 +105,16 @@ jobs:
           DIGESTS: ${{ steps.load-images.outputs.digests }}
         run: |
           echo "$DIGESTS"
-
+      -
+        name: Push to local registry
+        env:
+          DIGESTS: ${{ steps.load-images.outputs.digests }}
+        run: |
+          echo "$DIGESTS" | (
+            while read digest; do
+              docker image tag "$digest" localhost:5000/image
+            done
+          )
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
