@@ -113,8 +113,8 @@ jobs:
         run: |
           echo "$DIGESTS" | (
             while read digest; do
-              docker image tag "$digest" "$REGISTRY/image"
-              docker image push "$REGISTRY/image"
+              docker image tag "$digest" "$REGISTRY/image:latest"
+              docker image push "$REGISTRY/image:latest"
             done
           )
       -
@@ -123,7 +123,7 @@ jobs:
           DIGESTS: ${{ steps.load-images.outputs.digests }}
           REGISTRY: "127.0.0.1:${{ job.services.registry.ports['5000'] }}"
         run: |
-          images=$(sed -e "s#^#${REGISTRY}/image@#" <<< "$DIGESTS")
+          images=$(sed -e "s#^#${REGISTRY}/image:latest@#" <<< "$DIGESTS")
           docker buildx imagetools create -t "$REGISTRY/manifest" $images
       -
         name: Login to DockerHub
