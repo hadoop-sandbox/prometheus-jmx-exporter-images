@@ -51,7 +51,7 @@ jobs:
           build-args: |
             java_version=${{ matrix.java_version }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: image-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.java_version }}-${{ strategy.job-index }}
           path: ./out/image-*.tar
