@@ -154,22 +154,21 @@ jobs:
           GHCR_REPO: "ghcr.io/${{ github.repository_owner }}"
           DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
-          run: |
-            docker buildx imagetools create \
-                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:latest" \
-                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:java-11" \
-                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1" \
-                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1-java-11" \
-                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3" \
-                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3-java-11" \
-                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3.0" \
-                  -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3.0-java-11" \
-                  -t "${GHCR_REPO}/prometheus-jmx-exporter:latest" \
-                  -t "${GHCR_REPO}/prometheus-jmx-exporter:java-11" \
-                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1" \
-                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1-java-11" \
-                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3" \
-                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3-java-11" \
-                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3.0" \
-                  -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3.0-java-11" \
-                  "${MANIFEST}"
+          docker buildx imagetools create \
+                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:latest" \
+                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:java-11" \
+                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1" \
+                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1-java-11" \
+                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3" \
+                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3-java-11" \
+                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3.0" \
+                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3.0-java-11" \
+                -t "${GHCR_REPO}/prometheus-jmx-exporter:latest" \
+                -t "${GHCR_REPO}/prometheus-jmx-exporter:java-11" \
+                -t "${GHCR_REPO}/prometheus-jmx-exporter:1" \
+                -t "${GHCR_REPO}/prometheus-jmx-exporter:1-java-11" \
+                -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3" \
+                -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3-java-11" \
+                -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3.0" \
+                -t "${GHCR_REPO}/prometheus-jmx-exporter:1.3.0-java-11" \
+                "${MANIFEST}"
