@@ -68,7 +68,7 @@ jobs:
 
     services:
       registry:
-        image: registry:2
+        image: registry:3
         ports:
           - 5000/tcp
 
@@ -132,13 +132,6 @@ jobs:
           docker buildx imagetools create -t "$REGISTRY/manifest" $IMAGES
           echo "manifest=$REGISTRY/manifest" >> "$GITHUB_OUTPUT"
       -
-        name: Login to DockerHub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
         name: Login to GitHub Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -152,17 +145,8 @@ jobs:
         env:
           MANIFEST: ${{ steps.create-manifest.outputs.manifest }}
           GHCR_REPO: "ghcr.io/${{ github.repository_owner }}"
-          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
           docker buildx imagetools create \
-                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:latest" \
-                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:java-11" \
-                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1" \
-                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1-java-11" \
-                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3" \
-                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3-java-11" \
-                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3.0" \
-                -t "${DOCKERHUB_REPO}/prometheus-jmx-exporter:1.3.0-java-11" \
                 -t "${GHCR_REPO}/prometheus-jmx-exporter:latest" \
                 -t "${GHCR_REPO}/prometheus-jmx-exporter:java-11" \
                 -t "${GHCR_REPO}/prometheus-jmx-exporter:1" \
