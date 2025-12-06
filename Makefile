@@ -5,7 +5,7 @@ platforms := linux/amd64,linux/arm64
 cache := cache
 docker := docker
 jmx_exporter_major := 1
-jmx_exporter_minor := 3
+jmx_exporter_minor := 5 
 jmx_exporter_patch := 0
 
 version_tags := $(jmx_exporter_major) $(jmx_exporter_major).$(jmx_exporter_minor) $(jmx_exporter_major).$(jmx_exporter_minor).$(jmx_exporter_patch)
