@@ -30,6 +30,10 @@ jobs:
           - os: ubuntu-24.04-arm
             arch: arm64
             java_version: "11"
+
+    permissions:
+      contents: read
+
     steps:
       -
         name: Checkout
