@@ -2,7 +2,7 @@
 ARG java_version=8
 
 FROM scratch AS download
-ADD --checksum=sha256:01c4aaba0eb123c0c07c14cd320a024cc96f8dd74f3ce89cd8b10a03449e779e https://github.com/prometheus/jmx_exporter/releases/download/1.3.0/jmx_prometheus_standalone-1.3.0.jar /dists/jmx_prometheus_standalone.jar
+ADD --checksum=sha256:bf4e061dca52169764c484d5931a8513798070db75cd2b6ba8303d20cb2530f1 https://github.com/prometheus/jmx_exporter/releases/download/1.5.0/jmx_prometheus_standalone-1.5.0.jar /dists/jmx_prometheus_standalone.jar
 
 FROM eclipse-temurin:${java_version}-jre AS prometheus-jmx-exporter
 RUN --mount=type=bind,from=download,source=/dists,target=/dists \
