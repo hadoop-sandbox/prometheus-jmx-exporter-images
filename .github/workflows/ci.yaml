@@ -47,7 +47,7 @@ jobs:
           install -d out
       -
         name: Build container image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           outputs: |
             type=docker,dest=./out/image-${{ matrix.arch }}-${{ matrix.java_version }}.tar
