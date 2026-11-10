@@ -24,10 +24,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-24.04
+          - os: ubuntu-26.04
             arch: amd64
             java_version: "11"
-          - os: ubuntu-24.04-arm
+          - os: ubuntu-26.04-arm
             arch: arm64
             java_version: "11"
 
@@ -61,7 +61,7 @@ jobs:
           path: ./out/image-*.tar
 
   build_manifests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [build_images]
 
     permissions:
